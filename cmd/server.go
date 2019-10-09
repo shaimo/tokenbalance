@@ -15,6 +15,7 @@ func router() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/balance/{contract}/{wallet}", getBalanceHandler).Methods("GET")
 	r.HandleFunc("/token/{contract}/{wallet}", getTokenHandler).Methods("GET")
+	r.HandleFunc("/ethbalance/{wallet}", getEthBalanceHandler).Methods("GET")
 	r.HandleFunc("/health", getHealthHandler)
 	return r
 }
@@ -84,5 +85,20 @@ func getBalanceHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(query.BalanceString()))
+	}
+}
+
+func getEthBalanceHandler(w http.ResponseWriter, r *http.Request) {
+	wallet := collectVars(r)
+	contract:= "0x1F573D6Fb3F13d689FF844B4cE37794d79a7FF1C"
+	log.Println("Fetching /ethbalance for Wallet:", wallet)
+	query, err := tb.New(contract, wallet)
+	w.Header().Set("Content-Type", "text/plain")
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("0.0"))
+	} else {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(query.ETHString()))
 	}
 }
